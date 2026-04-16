@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 
 
 class EvaluationResult(BaseModel):
@@ -6,5 +7,5 @@ class EvaluationResult(BaseModel):
     job_id: str
     score: int
     decision: str
-    issues: list[str]
+    issues: List[str]
     summary: str

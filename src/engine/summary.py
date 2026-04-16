@@ -13,11 +13,11 @@ def generate_summary(candidate: Candidate, score: int, decision: str, issues: li
         return (
             f"Candidate passed mandatory checks and scored {score}. "
             f"There are some concerns: {', '.join(issues)}. "
-            f"Recommended decision: {decision}."
+            f"Recommended outcome based on evaluation."
         )
 
     return (
         f"Candidate passed mandatory checks with a strong overall profile. "
         f"Final score is {score}. "
-        f"Recommended decision: {decision}."
+        f"Recommended outcome based on evaluation."
     )
