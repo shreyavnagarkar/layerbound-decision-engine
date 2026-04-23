@@ -1,11 +1,20 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from src.engine.evaluator import evaluate_candidate
 from src.models.candidate import Candidate
 from src.models.job_config import JobConfig
 
-app = FastAPI()
+app = FastAPI(title="Layerbound Intake Evaluation API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class IntakeRequest(BaseModel):
@@ -13,11 +22,15 @@ class IntakeRequest(BaseModel):
     job_config: JobConfig
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
 @app.post("/evaluate")
 def evaluate(request: IntakeRequest):
     result = evaluate_candidate(request.candidate, request.job_config)
 
-    # Map to intake API language
     if result.decision == "Submit":
         status = "ready_for_follow_up"
         next_steps = ["Schedule interview"]
@@ -28,7 +41,6 @@ def evaluate(request: IntakeRequest):
         status = "low_fit"
         next_steps = ["Reject or archive"]
 
-    # Detect missing info
     missing_info = []
     if request.candidate.expected_salary is None:
         missing_info.append("expected_salary")
