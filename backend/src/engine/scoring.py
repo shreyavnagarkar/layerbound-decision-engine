@@ -1,3 +1,4 @@
+
 from src.models.candidate import Candidate
 from src.models.job_config import JobConfig
 from src.models.result import ScoreBreakdownItem
@@ -9,11 +10,25 @@ def calculate_score(
     score = 50
     issues: list[str] = []
     breakdown: list[ScoreBreakdownItem] = [
-        ScoreBreakdownItem(label="Base score", points=50, note="Starting point for all candidates")
+        ScoreBreakdownItem(
+            label="Base score",
+            points=50,
+            note="Starting point for all candidates"
+        )
     ]
 
+    # Salary alignment
     if candidate.expected_salary is not None:
-        if job_config.salary_min <= candidate.expected_salary <= job_config.salary_max:
+        if candidate.expected_salary < job_config.salary_min:
+            issues.append("Salary below target range")
+            breakdown.append(
+                ScoreBreakdownItem(
+                    label="Salary alignment",
+                    points=0,
+                    note="Expected salary is below the target range",
+                )
+            )
+        elif candidate.expected_salary <= job_config.salary_max:
             score += 20
             breakdown.append(
                 ScoreBreakdownItem(
@@ -52,6 +67,7 @@ def calculate_score(
             )
         )
 
+    # Notice period
     if candidate.notice_period_days is not None:
         if candidate.notice_period_days <= 30:
             score += 15
@@ -92,6 +108,7 @@ def calculate_score(
             )
         )
 
+    # General fit
     if candidate.fit_score is not None:
         if candidate.fit_score >= 8:
             score += 15
@@ -131,5 +148,7 @@ def calculate_score(
             )
         )
 
+    # Keep the final score between 0 and 100
     score = max(0, min(100, score))
+
     return score, issues, breakdown

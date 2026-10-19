@@ -103,3 +103,29 @@ def test_breakdown_points_sum_to_final_score_before_clamping():
     candidate = make_candidate(expected_salary=35000, notice_period_days=10, fit_score=9)
     score, _, breakdown = calculate_score(candidate, job_config)
     assert sum(item.points for item in breakdown) == score
+
+def test_salary_below_minimum_is_flagged():
+    job_config = make_job_config(
+        salary_min=30000,
+        salary_max=40000
+    )
+
+    candidate = make_candidate(
+        expected_salary=25000
+    )
+
+    score, issues, breakdown = calculate_score(
+        candidate, job_config
+    )
+
+    assert score == 50
+    assert "Salary below target range" in issues
+    assert "Salary slightly above range" not in issues
+
+    salary_item = next(
+        item for item in breakdown
+        if item.label == "Salary alignment"
+    )
+
+    assert salary_item.points == 0
+    assert sum(item.points for item in breakdown) == score
